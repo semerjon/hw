@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <meta http-equiv="Cache-Control" content="no-cache" charset="utf-8">
+   <link rel="stylesheet" type="text/css" href="style.css">
+   <style type="text/css">
+      /**/
+   </style>
+   <script src="jquery.min.js"></script>
+   <script src="common.js"></script>
+   <script type="text/javascript">
+      var category_names=null;
+
+      function deleteArticle(argId) {
+         if(prompt("Для удаления впишите в поле ввода: «УДАЛИТЬ»(Регистр учитывается)!", "Вы уверены?")=="УДАЛИТЬ") {
+            $.ajax({
+               url: 'delete_article',
+               type: 'GET',
+               data: ({'id' : argId}),
+               error: function(err) {
+                  alert(err);
+               },
+               success: function() {
+                  location.reload();
+               }
+            });
+         }
+      }
+
+      function loadListArticles(argCategory=0) {
+         $.ajax({
+            url: 'load_list_articles',
+            type: 'GET',
+            data: ({'category_id' : argCategory}),
+            error: function(err) {
+               alert(err);
+            },
+            success: function(data) {
+               var node=document.querySelector('#listWrapper');
+               node.innerHTML='';
+
+               JSON.parse(data).forEach((row) => {
+                  var elem=document.createElement('div');
+                  elem.className='block_article';
+                  elem.id=row.id;
+
+                  var link=document.createElement('a');
+                  link.href="article.html?id="+row.id;
+                  link.innerText=row.name;
+
+                  var inforow=document.createElement('div');
+                  inforow.className='inforow';
+                  inforow.innerHTML='<span>Категория: '+category_names[row.category_id]+' Дата добавления: '+row.date+'</span>';
+
+                  var description=document.createElement('div');
+                  description.className='description';
+                  description.innerHTML='<img src="'+row.preview_url+'"/><p>'+row.description+'</p>';
+
+                  elem.appendChild(link);
+                  elem.appendChild(inforow);
+                  elem.appendChild(description);
+
+                  if(is_auth && current_user.id == row.account_id) {
+                     var link1=document.createElement('a');
+                     link1.style.backgroundColor='green';
+                     link1.href="editArticle.html?id="+row.id;
+                     link1.innerText="Редактировать статью";
+
+                     var link2=document.createElement('a');
+                     link2.style.backgroundColor='blue';
+                     link2.setAttribute('onclick', "deleteArticle("+row.id+");");
+                     link2.innerText="Удалить статью";
+
+                     elem.appendChild(link1);
+                     elem.appendChild(link2);
+                  }
+
+                  node.appendChild(elem);
+               });
+            }
+         });
+      }
+
+      $(document).ready(function() {
+         $.ajax({
+            url: 'load_list_categories',
+            error: function(err) {
+               alert(err);
+            },
+            success: function(data) {
+               var node=document.body.querySelector('.block_categories');
+               category_names=JSON.parse(data);
+
+               for(var key in category_names) {
+                  var elem=document.createElement('a');
+                  elem.href='?category='+key;
+                  elem.innerText=category_names[key];
+                  node.appendChild(elem);
+               }
+
+               if(location.href.includes('category=')) {
+                  var category_id=location.href.split('category=')[1].split('&')[0];
+                  if(category_names[category_id]) {
+                     $('.block_categories>a')[category_id-1].style.color='#dd0000';
+                     loadListArticles(category_id);
+                     return;
+                  }
+               }
+
+               loadListArticles(0);
+            }
+         });
+      });
+   </script>
+</head>
+<body>
+   <div class="profile"></div>
+   <div class="header">
+      <a class="menu_item_selected" href="index.html">Статьи</a>
+   </div>
+   <div class="content">
+      <a style="float: right; margin: 5px 0; color: rgb(79, 109, 232);" href="editArticle.html">Добавить статью</a>
+      <div class="block_categories">
+         <span style="font-size: 24px;">Категории:</span>
+      </div>
+      <div id="listWrapper" style="display: inline-block; width: 570px;">
+      </div>
+   </div>
+</body>
+</html>

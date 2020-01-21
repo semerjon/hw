@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Cache-Control" content="no-cache" charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<style type="text/css">
+		/**/
+	</style>
+	<script src="jquery.min.js"></script>
+	<script src="common.js"></script>
+	<script src="comments.js"></script>
+	<script type="text/javascript">
+		function tocHideOrShow(arg) {
+			var help=$('.toc>ol')[0];
+			if(!help) return ;
+			if(help.style.display) {
+				help.style.display=null;
+				arg.innerText="скрыть";
+			} else {
+				help.style.display='none'
+				arg.innerText="показать";
+			}
+		}
+
+		$(document).ready(function() {
+			$.ajax({
+				url: 'load_article',
+				type: 'GET',
+				data: ({"id" : (location.href.includes('id=') ? location.href.split('id=')[1].split('&')[0] : null)}),
+				dateType: 'json',
+				success: function(data) {
+					var fragments=JSON.parse(JSON.parse(data).content);
+
+					var num=0;
+					var tocOl=$('.toc>ol')[0];
+					var block_fragments=$('.block_fragments')[0];
+					for(var i=0; i < fragments.length; i+=2) {
+						tocOl.innerHTML+='<li><a href="#'+(++num)+'">'+fragments[i]+'</a></li>';
+						var elem=document.createElement('div');
+						elem.className="fragment";
+						elem.setAttribute('id', num);
+						elem.innerHTML='<h2>'+fragments[i]+'</h2> <div class="body"> </div> </div> ';
+						elem.children[1].innerText=fragments[i+1];
+						block_fragments.appendChild(elem);
+					}
+				}
+			});
+		});
+	</script>
+</head>
+<body>
+	<div class="profile"></div>
+	<div class="header">
+		<a class="menu_item_selected" href="articles.html">Статьи</a>
+	</div>
+	<div class="content">
+		<div class="toc">
+			<div class="title">
+				<h3>Содержание</h3>
+				<a onclick="tocHideOrShow(this);">скрыть</a>
+			</div>
+			<ol>
+			</ol>
+		</div>
+		<div class="block_fragments">
+		</div>
+		<div class="block_comments">
+			<h2 style="margin: 10px 0;">Комментарии:</h2>
+		</div>
+		<form class="comment" method="POST" action="comment.php">
+			<div class="comment_wrapper">
+				<a onclick="$(this.parentNode.parentNode).submit();">Добавить комментарий</a>
+				<textarea id="form" class="contentComment" name="comment" placeholder="Введите комментарий"></textarea>
+			</div>
+		</form>
+	</div>
+</body>
+</html>

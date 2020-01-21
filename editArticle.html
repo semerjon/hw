@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Cache-Control" content="no-cache" charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<style type="text/css">
+		.fragment {
+			border: 1px solid transparent;
+			border-radius: 5px;
+			padding: 5px;
+			background-color: silver;
+			transition: background-color .5s linear;
+		}
+		form button {
+			/*width: 100%;*/
+			clear: both;
+			float: right;
+			margin-top: 5px;
+			border: 0;
+			padding: 5px 10px;
+			font-size: 30px;
+			font-weight: 700;
+			text-transform: uppercase;
+			background: linear-gradient(black, green, black);
+			color: white;
+		}
+		form button:active {
+			background: linear-gradient(green, black, green);
+		}
+	</style>
+	<script src="jquery.min.js"></script>
+	<script src="common.js"></script>
+	<script type="text/javascript">
+		var articleDescription={};
+		//var articleFragments={};
+		var countFragments=0;
+		var category_names=null;
+		var fileReader=new FileReader();
+
+		function tocHideOrShow(arg) {
+			var help=$('.toc>ol')[0];
+			if(!help) return ;
+			if(help.style.display) {
+				help.style.display=null;
+				arg.innerText="скрыть";
+			} else {
+				help.style.display='none'
+				arg.innerText="показать";
+			}
+		}
+		function addFragment(name=null, description=null) {
+			$('.toc>ol')[0].innerHTML+='<li><a href="#'+(++countFragments)+'">Новый фрагмент</a></li>';
+			var elem=document.createElement('div');
+			elem.className='fragment';
+			elem.setAttribute('id', countFragments);
+			elem.innerHTML='<a onclick="removeFragment(this);">Удалить фрагмент</a> <a onclick="resetFragment(this);">Сбросить фрагмент</a> <a onclick="addFragment();">Добавить фрагмент</a> <a onclick="previewFragment(this);">Предосмотр фрагмента</a> <input type="text" name="name'+countFragments+'" placeholder="Название фрагмента"/> <textarea name="description'+countFragments+'" placeholder="Описание фрагмента"></textarea>';
+			if(name) {
+				elem.children[4].value=name;
+				$('.toc>ol>li>a')[countFragments-1].innerText=name;
+			}
+			if(description) {
+				elem.children[5].value=description;
+			}
+			$('.content>form')[0].appendChild(elem);
+		}
+		function removeFragment(arg) {
+			if(countFragments>1 && confirm("Подвердите действие!")) {
+				var baseFragments=$('.fragment[id]');
+				var baseLi=$('.toc>ol>li');
+				var pos=baseFragments.index(arg.parentNode);
+				for(var i=(--countFragments); i>pos; --i) {
+					baseLi[i].children[0].setAttribute('href', '#'+i);
+					baseFragments[i].setAttribute('id', i);
+					baseFragments[i].children[4].setAttribute('name', 'name'+i);
+					baseFragments[i].children[5].setAttribute('name', 'description'+i);
+				}
+				baseLi[pos].remove();
+				arg.parentNode.remove();
+			}
+		}
+		function previewFragment(arg, isResumeEdit=false) {
+			if(isResumeEdit) {
+				arg.innerText="Предосмотр фрагмента";
+				arg.setAttribute('onclick', "previewFragment(this)");
+				var elem=arg.parentNode;
+				elem.removeAttribute('style');
+				elem.children[4].removeAttribute('style');
+				elem.children[5].removeAttribute('style');
+				elem.children[7].remove();
+				elem.children[6].remove();
+			} else {
+				arg.innerText="Редактировать фрагмент";
+				arg.setAttribute('onclick', "previewFragment(this, true)");
+				var elem=arg.parentNode;
+				elem.style.border=0;
+				//elem.style.padding=0;
+				elem.style.backgroundColor='transparent';
+				elem.children[4].style.display='none';
+				elem.children[5].style.display='none';
+				elem.appendChild(document.createElement('h2'));
+				elem.lastElementChild.innerText=elem.children[4].value;
+				elem.appendChild(document.createElement('div'));
+				elem.lastElementChild.className="body";
+				elem.lastElementChild.innerHTML=elem.children[5].value;
+			}
+		}
+		function resetFragment(arg) {
+			/*var elem=arg.parentNode;
+			elem.children[4].value=$('.toc>ol>li>a')[$('.fragment').index(elem)-1].innerText;
+			elem.children[5].value=articleFragments[elem.children[4].value];*/
+		}
+		function previewDescription(arg, isResumeEdit=false) {
+			if(isResumeEdit) {
+				arg.innerText="Предосмотр описания";
+				arg.setAttribute('onclick', "previewDescription(this)");
+				var elem=arg.parentNode;
+				elem.removeAttribute('style');
+				elem.style.float='right';
+				elem.style.width='500px';
+				elem.children[5].removeAttribute('style');
+				elem.children[8].removeAttribute('style');
+				elem.children[9].removeAttribute('style');
+				document.body.querySelector('.block_article').remove();
+			} else {
+				arg.innerText="Редактировать описание";
+				arg.setAttribute('onclick', "previewDescription(this, true)");
+				var elem=arg.parentNode;
+				elem.style.border=0;
+				//elem.style.padding=0;
+				elem.style.backgroundColor='transparent';
+				elem.children[5].style.display='none';
+				elem.children[8].style.display='none';
+				elem.children[9].style.display='none';
+				var blockDescription;
+				var imgPreview=elem.children[6].files[0] ? fileReader.result : articleDescription[5];
+				elem.parentNode.insertBefore(blockDescription=document.createElement('div'), elem.parentNode.children[1]);
+				blockDescription.className="block_article";
+				blockDescription.style.clear='both';
+				blockDescription.style.float='right';
+				blockDescription.style.width='570px';
+				blockDescription.innerHTML="<a>"+elem.children[8].value+"</a> <div class=\"inforow\"> </div> <div class=\"description\"> "+ (imgPreview ? "<img src=\""+imgPreview+"\"/>" : "<img src=\"team_logo.jpg\"/>") +" <p>"+elem.children[9].value+"</p> </div>";
+			}
+		}
+		function resetDescription(arg) {
+			if(confirm("Подвердите действие!")) {
+				arg.parentNode.children[5].value=articleDescription[2];
+				arg.parentNode.children[8].value=articleDescription[4];
+				arg.parentNode.children[9].value=articleDescription[6];
+			}
+		}
+		function resetPreview(arg) {
+			if(confirm("Подвердите действие!")) {
+				arg.parentNode.children[6].value=null;
+				arg.parentNode.children[6].onchange();
+				return true;
+			} else return false;
+		}
+		function removePreview(arg) {
+			if(resetPreview(arg)) {
+				articleDescription[5]=null;
+				arg.parentNode.children[7].value=1;
+			}
+		}
+		$(document).ready(function() {
+			//descriptionArticle=document.body.querySelector('.fragment');
+			$.ajax({
+				url: 'load_list_categories',
+				async: false,
+				dataType: 'json',
+				error: function(err) {
+               alert(err);
+            },
+				success: function(data) {
+					category_names=data;
+
+					var node=document.body.querySelector('select');
+					for(var key in category_names) {
+						node.appendChild(document.createElement('option'));
+						node.lastElementChild.setAttribute('value', key);
+						node.lastElementChild.innerText=category_names[key];
+					}
+				}
+			});
+
+			$('form').submit(function(event) {
+				event.preventDefault();
+				var formData=new FormData($('form')[0]);
+				$.ajax({
+					url: 'edit_article',
+					type: 'POST',
+					cache: false,
+					data: formData,
+					dataType: 'html',
+					processData: false,
+					contentType: false,
+					success: function(data) {
+						/*if(data==1) {
+							alert("Статья была успешно <?php echo $_GET['id'] ? 'обновлена' : 'добавлена'; ?>");
+							location.reload();
+						} else alert("Что-то пошло не так. Возможно, вы неправильно заполнили форму!");*/
+					}
+				});
+				delete formData;
+			});
+
+			if(location.href.includes("id=") && is_auth) {
+				$.ajax({
+					url: 'load_article',
+					type: 'GET',
+					data: ({"id" : (location.href.includes('id=') ? location.href.split('id=')[1].split('&')[0] : null)}),
+					dataType: 'json',
+					error: function(err) {
+	               alert(err);
+	            },
+					success: function(data) {
+						articleDescription=data;
+						var help=document.body.querySelector('.fragment');
+						help.children[5].value=articleDescription.category_id;
+						help.children[8].value=articleDescription.name;
+						help.children[9].value=articleDescription.description;
+						document.querySelector('form').lastElementChild.value=articleDescription.id;
+
+						var fragments=JSON.parse(articleDescription.content);
+						for(var i=0; i < fragments.length; i+=2) {
+							addFragment(fragments[i], fragments[i+1]);
+						}
+					}
+				});
+			} else {
+				addFragment();
+			}
+		});
+	</script>
+</head>
+<body>
+	<div class="profile"></div>
+	<div class="header">
+		<a class="menu_item_selected" href="articles.html">Статьи</a>
+	</div>
+	<div class="content">
+		<form method="POST" enctype="multipart/form-data">
+			<div style="overflow-y: auto;">
+				<div class="fragment" style="float: right; width: 500px;">
+					<a onclick="resetDescription(this);">Сбросить описание</a>
+					<a onclick="this.parentNode.children[6].click();">Изображение-превью</a>
+					<a onclick="previewDescription(this);">Предосмотр описания</a>
+					<a onclick="removePreview(this);">Удалить превью</a>
+					<a onclick="resetPreview(this);">Сбросить превью</a>
+					<select name="category">
+						<option value="0" selected disabled>Выберите категорию</option>
+					</select>
+					<input type="file" accept="image/*" style="display: none;" name="previewArticle" onchange="if(this.files[0]) { fileReader.readAsDataURL(this.files[0]); this.parentNode.children[7].value=0; } this.parentNode.children[1].innerText=(this.files[0] ? this.files[0].name : 'Изображение-превью');"/>
+					<input type="hidden" name="isDeletedPreview" value="0"/>
+					<input type="text" name="nameArticle" placeholder="Название статьи"/>
+					<textarea name="descriptionArticle" placeholder="Описание статьи"></textarea>
+				</div>
+				<button>Сохранить</button>
+				<div class="toc">
+					<div class="title">
+						<h3>Содержание</h3>
+						<a onclick="tocHideOrShow(this);">скрыть</a>
+					</div>
+					<ol>
+					</ol>
+				</div>
+			</div>
+			<input type="hidden" name="article_id" value="0"/>
+		</form>
+	</div>
+</body>
+</html>
