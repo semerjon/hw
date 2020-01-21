@@ -1,0 +1,1 @@
+["Биржа мемов","<img src=\"data/articles/11/img.jpg\" style=\"width: 240px;\"/>"]

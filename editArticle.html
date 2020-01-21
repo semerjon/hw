@@ -193,11 +193,8 @@
 					dataType: 'html',
 					processData: false,
 					contentType: false,
-					success: function(data) {
-						/*if(data==1) {
-							alert("Статья была успешно <?php echo $_GET['id'] ? 'обновлена' : 'добавлена'; ?>");
-							location.reload();
-						} else alert("Что-то пошло не так. Возможно, вы неправильно заполнили форму!");*/
+					success: function() {
+						alert("Операция прошла успешно!");
 					}
 				});
 				delete formData;

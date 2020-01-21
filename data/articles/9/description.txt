@@ -1,0 +1,2 @@
+Сегодня мы рады сообщить о выпуске OpenIV 3.2.
+<center><iframe src="https://www.youtube.com/embed/oMF94sbBtZc?controls=1" width="560" height="315" frameborder="0" allowfullscreen="allowfullscreen"></iframe></center>

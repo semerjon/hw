@@ -381,7 +381,7 @@ function editArticle(req, answer) {
             fs.writeFileSync(path.join(__dirname, "data/articles/"+res.insertId+"/description.txt"), fields.descriptionArticle);
             fs.writeFileSync(path.join(__dirname, "data/articles/"+res.insertId+"/article.txt"), JSON.stringify(fragments));
             if(form_files.previewArticle && form_files.previewArticle.name != '') {
-               fs.copyFileSync(form_files.previewArticle.path, path.join(__dirname, "data/articles/"+fields.article_id+"/preview.jpg"));
+               fs.copyFileSync(form_files.previewArticle.path, path.join(__dirname, "data/articles/"+res.insertId+"/preview.jpg"));
             }
 
             answer.writeHead(200);
